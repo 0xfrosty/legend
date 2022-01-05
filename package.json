@@ -5,10 +5,10 @@
   "main": "index.js",
   "scripts": {
     "clean": "npx hardhat clean",
-    "local": "npx hardhat node",
+    "local": "npx --node-options=--openssl-legacy-provider hardhat node",
     "deploy:local": "npx hardhat run --network localhost scripts/deploy.ts",
     "deploy:ropsten": "npx hardhat run --network ropsten scripts/deploy.ts",
-    "test": "npx hardhat test"
+    "test": "npx --node-options=--openssl-legacy-provider hardhat test"
   },
   "keywords": [],
   "author": "",
