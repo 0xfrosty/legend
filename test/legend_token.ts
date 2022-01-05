@@ -15,7 +15,7 @@ describe("LegendToken", function () {
     legendToken = (await LegendTokenFactory.deploy()) as LegendToken;
     await legendToken.deployed();
   });
-  
+
   it(`should have the ${name} name`, async function () {
     expect(await legendToken.name()).to.equal(name);
   });
