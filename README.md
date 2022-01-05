@@ -1,10 +1,21 @@
-# Advanced Sample Hardhat Project
+# LEGEND token
 
-This project demonstrates an advanced Hardhat use case, integrating other tools commonly used alongside Hardhat in the ecosystem.
+This project contains the smart contracts for the LEGEND ERC20 token, written in Solidity with the help of the
+[OpenZeppelin Contracts](https://openzeppelin.com/contracts/) library. The project uses [Hardhat](https://hardhat.org/)
+with Typescript for scripts and tests.
 
-The project comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts. It also comes with a variety of other tools, preconfigured to work with the project code.
+The following `package.json` scripts are available:
 
-Try running some of the following tasks:
+```shell
+yarn clean
+yarn compile
+yarn coverage
+yarn deploy:local
+yarn local
+yarn test
+```
+
+You can also try running some of the following tasks:
 
 ```shell
 npx hardhat accounts
