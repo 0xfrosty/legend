@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "clean": "npx hardhat clean",
+    "compile": "npx hardhat compile",
     "local": "npx --node-options=--openssl-legacy-provider hardhat node",
     "deploy:local": "npx hardhat run --network localhost scripts/deploy.ts",
     "deploy:ropsten": "npx hardhat run --network ropsten scripts/deploy.ts",
