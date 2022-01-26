@@ -8,20 +8,18 @@ import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
 /**
- * @title VestingWallet
- * @dev This contract handles the vesting of Eth and ERC20 tokens for a given beneficiary. Custody of multiple tokens
- * can be given to this contract, which will release the token to the beneficiary following a given vesting schedule.
- * The vesting schedule is customizable through the {vestedAmount} function.
+ * @title ERC20VestingWallet
+ * @dev This contract handles the vesting of an ERC20 token for a given beneficiary. Custody of tokens can be given to
+ * this contract, which will release them to the beneficiary following a given vesting schedule. The vesting schedule
+ * is customizable through the {vestedAmount} function.
  *
  * Any token transferred to this contract will follow the vesting schedule as if they were locked from the beginning.
  * Consequently, if the vesting has already started, any amount of tokens sent to this contract will (at least partly)
  * be immediately releasable.
  */
-contract VestingWallet is Context {
-    event EtherReleased(uint256 amount);
+contract ERC20VestingWallet is Context {
     event ERC20Released(address indexed token, uint256 amount);
 
-    uint256 private _released;
     mapping(address => uint256) private _erc20Released;
     address private immutable _beneficiary;
     uint64 private immutable _start;
@@ -40,11 +38,6 @@ contract VestingWallet is Context {
         _start = startTimestamp;
         _duration = durationSeconds;
     }
-
-    /**
-     * @dev The contract should be able to receive Eth.
-     */
-    receive() external payable virtual {}
 
     /**
      * @dev Getter for the beneficiary address.
@@ -68,29 +61,10 @@ contract VestingWallet is Context {
     }
 
     /**
-     * @dev Amount of eth already released
-     */
-    function released() public view virtual returns (uint256) {
-        return _released;
-    }
-
-    /**
      * @dev Amount of token already released
      */
     function released(address token) public view virtual returns (uint256) {
         return _erc20Released[token];
-    }
-
-    /**
-     * @dev Release the native token (ether) that have already vested.
-     *
-     * Emits a {TokensReleased} event.
-     */
-    function release() public virtual {
-        uint256 releasable = vestedAmount(uint64(block.timestamp)) - released();
-        _released += releasable;
-        emit EtherReleased(releasable);
-        Address.sendValue(payable(beneficiary()), releasable);
     }
 
     /**
@@ -103,13 +77,6 @@ contract VestingWallet is Context {
         _erc20Released[token] += releasable;
         emit ERC20Released(token, releasable);
         SafeERC20.safeTransfer(IERC20(token), beneficiary(), releasable);
-    }
-
-    /**
-     * @dev Calculates the amount of ether that has already vested. Default implementation is a linear vesting curve.
-     */
-    function vestedAmount(uint64 timestamp) public view virtual returns (uint256) {
-        return _vestingSchedule(address(this).balance + released(), timestamp);
     }
 
     /**
