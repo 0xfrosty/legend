@@ -33,7 +33,7 @@ contract ERC20VestingWallet is Context {
         uint64 startTimestamp,
         uint64 durationSeconds
     ) {
-        require(beneficiaryAddress != address(0), "VestingWallet: beneficiary is zero address");
+        require(beneficiaryAddress != address(0), "ERC20VestingWallet: beneficiary is zero address");
         _beneficiary = beneficiaryAddress;
         _start = startTimestamp;
         _duration = durationSeconds;
