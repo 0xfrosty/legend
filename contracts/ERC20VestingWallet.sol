@@ -5,6 +5,7 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
+import "./IERC20VestingWallet.sol";
 
 /**
  * @title ERC20VestingWallet
@@ -16,10 +17,8 @@ import "@openzeppelin/contracts/utils/Context.sol";
  * Consequently, if the vesting has already started, any amount of tokens sent to this contract will (at least partly)
  * be immediately releasable.
  */
-contract ERC20VestingWallet is Context {
+contract ERC20VestingWallet is IERC20VestingWallet, Context {
     using Address for address;
-
-    event ERC20Released(address token, uint256 amount);
 
     address private immutable _token;
     address private immutable _beneficiary;
