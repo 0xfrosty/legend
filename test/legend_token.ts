@@ -1,7 +1,6 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-
 import { LegendToken } from "../typechain/LegendToken";
 
 /**
@@ -25,7 +24,7 @@ describe("LegendToken", function () {
     legendToken = (await LegendTokenFactory.deploy()) as LegendToken;
     await legendToken.deployed();
 
-    [owner, bob] = await ethers.getSigners()
+    [owner, bob] = await ethers.getSigners();
   });
 
   /**
@@ -53,7 +52,7 @@ describe("LegendToken", function () {
   describe("Transfers", function () {
     it("should allow owner to pause transfers", async function () {
       expect(await legendToken.pause())
-        .to.emit(legendToken, 'Paused')
+        .to.emit(legendToken, "Paused")
         .withArgs(owner.address);
 
       expect(await legendToken.paused()).to.true;
@@ -63,28 +62,28 @@ describe("LegendToken", function () {
       await legendToken.pause();
 
       expect(await legendToken.unpause())
-        .to.emit(legendToken, 'Unpaused')
+        .to.emit(legendToken, "Unpaused")
         .withArgs(owner.address);
 
       expect(await legendToken.paused()).to.false;
     });
 
     it("shouldn't allow non-owner to pause transfers", async function () {
-      expect(legendToken.connect(bob).pause())                    // not awaiting here to work around
-        .to.be.revertedWith("Ownable: caller is not the owner");  // https://github.com/EthWorks/Waffle/issues/95
+      expect(legendToken.connect(bob).pause())                   // not awaiting here to work around
+        .to.be.revertedWith("Ownable: caller is not the owner"); // https://github.com/EthWorks/Waffle/issues/95
 
       expect(await legendToken.paused()).to.false;
     });
 
     it("should allow holder to transfer tokens", async function () {
-      let amount = ethers.utils.parseUnits("100", decimals);
-      let ownerBalance = await legendToken.balanceOf(owner.address);
-      let bobBalance = await legendToken.balanceOf(bob.address);
-      let newOwnerBalance = ownerBalance.sub(amount);
-      let newBobBalance = bobBalance.add(amount);
+      const amount = ethers.utils.parseUnits("100", decimals);
+      const ownerBalance = await legendToken.balanceOf(owner.address);
+      const bobBalance = await legendToken.balanceOf(bob.address);
+      const newOwnerBalance = ownerBalance.sub(amount);
+      const newBobBalance = bobBalance.add(amount);
 
       expect(await legendToken.transfer(bob.address, amount))
-        .to.emit(legendToken, 'Transfer')
+        .to.emit(legendToken, "Transfer")
         .withArgs(owner.address, bob.address, amount);
 
       expect(await legendToken.balanceOf(owner.address)).to.equal(newOwnerBalance);
@@ -92,11 +91,11 @@ describe("LegendToken", function () {
     });
 
     it("shouldn't allow holder to transfer tokens when contract is paused", async function () {
-      let amount = ethers.utils.parseUnits("100", decimals);
+      const amount = ethers.utils.parseUnits("100", decimals);
 
       await legendToken.pause();
-      expect(legendToken.transfer(bob.address, amount))  // not awaiting here to work around
-        .to.be.revertedWith("Pausable: paused");         // https://github.com/EthWorks/Waffle/issues/95
+      expect(legendToken.transfer(bob.address, amount)) // not awaiting here to work around
+        .to.be.revertedWith("Pausable: paused");        // https://github.com/EthWorks/Waffle/issues/95
     });
   });
 });
