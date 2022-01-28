@@ -5,7 +5,6 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
 
 /**
  * @title ERC20VestingWallet
@@ -19,9 +18,8 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
  */
 contract ERC20VestingWallet is Context {
     using Address for address;
-    using Math for uint256;
 
-    event ERC20Released(address indexed token, uint256 amount);
+    event ERC20Released(address token, uint256 amount);
 
     address private immutable _token;
     address private immutable _beneficiary;
@@ -38,8 +36,8 @@ contract ERC20VestingWallet is Context {
         uint64 startTimestamp,
         uint64 durationSeconds
     ) {
-        require(tokenAddress.isContract(), "ERC20VestingWallet: ERC20 address is not contract");
-        require(beneficiaryAddress != address(0), "ERC20VestingWallet: beneficiary is zero address");
+        require(tokenAddress.isContract(), "ERC20 address is not a contract");
+        require(beneficiaryAddress != address(0), "Beneficiary is zero address");
         _token = tokenAddress;
         _beneficiary = beneficiaryAddress;
         _start = startTimestamp;

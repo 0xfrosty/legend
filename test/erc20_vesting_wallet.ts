@@ -46,7 +46,7 @@ describe("ERC20VestingWallet", function () {
     // https://github.com/EthWorks/Waffle/issues/95
     const VestingWalletFactory = await ethers.getContractFactory("ERC20VestingWallet");
     expect(VestingWalletFactory.deploy(owner.address, bob.address, start, duration))
-      .to.be.revertedWith("ERC20VestingWallet: ERC20 address is not contract");
+      .to.be.revertedWith("ERC20 address is not a contract");
   });
 
   /**
@@ -57,7 +57,7 @@ describe("ERC20VestingWallet", function () {
     // TODO: not awaiting here to work around
     // https://github.com/EthWorks/Waffle/issues/95
     expect(VestingWalletFactory.deploy(legendToken.address, ZERO_ADDRESS, start, duration))
-      .to.be.revertedWith("ERC20VestingWallet: beneficiary is zero address");
+      .to.be.revertedWith("Beneficiary is zero address");
   });
 
   /**
