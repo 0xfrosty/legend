@@ -18,25 +18,39 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
  * be immediately releasable.
  */
 contract ERC20VestingWallet is Context {
+    using Address for address;
+    using Math for uint256;
+
     event ERC20Released(address indexed token, uint256 amount);
 
-    mapping(address => uint256) private _erc20Released;
+    address private immutable _token;
     address private immutable _beneficiary;
+    uint256 private _released;
     uint64 private immutable _start;
     uint64 private immutable _duration;
 
     /**
-     * @dev Set the beneficiary, start timestamp and vesting duration of the vesting wallet.
+     * @dev Set the token, beneficiary, start timestamp and vesting duration of the vesting wallet.
      */
     constructor(
+        address tokenAddress,
         address beneficiaryAddress,
         uint64 startTimestamp,
         uint64 durationSeconds
     ) {
+        require(tokenAddress.isContract(), "ERC20VestingWallet: ERC20 address is not contract");
         require(beneficiaryAddress != address(0), "ERC20VestingWallet: beneficiary is zero address");
+        _token = tokenAddress;
         _beneficiary = beneficiaryAddress;
         _start = startTimestamp;
         _duration = durationSeconds;
+    }
+
+    /**
+     * @dev Getter for the ERC20 token address.
+     */
+    function token() public view virtual returns (address) {
+        return _token;
     }
 
     /**
@@ -63,27 +77,27 @@ contract ERC20VestingWallet is Context {
     /**
      * @dev Amount of token already released
      */
-    function released(address token) public view virtual returns (uint256) {
-        return _erc20Released[token];
+    function released() public view virtual returns (uint256) {
+        return _released;
     }
 
     /**
      * @dev Release the tokens that have already vested.
      *
-     * Emits a {TokensReleased} event.
+     * Emits a {ERC20Released} event.
      */
-    function release(address token) public virtual {
-        uint256 releasable = vestedAmount(token, uint64(block.timestamp)) - released(token);
-        _erc20Released[token] += releasable;
-        emit ERC20Released(token, releasable);
-        SafeERC20.safeTransfer(IERC20(token), beneficiary(), releasable);
+    function release() public virtual {
+        uint256 releasable = vestedAmount(uint64(block.timestamp)) - released();
+        _released += releasable;
+        emit ERC20Released(token(), releasable);
+        SafeERC20.safeTransfer(IERC20(token()), beneficiary(), releasable);
     }
 
     /**
      * @dev Calculates the amount of tokens that has already vested. Default implementation is a linear vesting curve.
      */
-    function vestedAmount(address token, uint64 timestamp) public view virtual returns (uint256) {
-        return _vestingSchedule(IERC20(token).balanceOf(address(this)) + released(token), timestamp);
+    function vestedAmount(uint64 timestamp) public view virtual returns (uint256) {
+        return _vestingSchedule(IERC20(token()).balanceOf(address(this)) + released(), timestamp);
     }
 
     /**

@@ -11,6 +11,7 @@ import { LegendToken } from "../typechain/LegendToken";
  * Test vesting wallet for ERC20 tokens
  */
 describe("ERC20VestingWallet", function () {
+  let legendToken: LegendToken;
   let vestingWallet: ERC20VestingWallet;
   let owner: SignerWithAddress, bob: SignerWithAddress;
   let now: number, start: number, end: number;
@@ -18,7 +19,7 @@ describe("ERC20VestingWallet", function () {
   const duration = 1000;
 
   /**
-   * Deploy contract before each test
+   * Deploy contracts before each test
    */
   beforeEach(async function () {
     [owner, bob] = await ethers.getSigners();
@@ -27,18 +28,36 @@ describe("ERC20VestingWallet", function () {
     start = now + offset;
     end = start + duration;
 
+    const LegendTokenFactory = await ethers.getContractFactory("LegendToken");
+    legendToken = (await LegendTokenFactory.deploy()) as LegendToken;
+    await legendToken.deployed();
+
     const VestingWalletFactory = await ethers.getContractFactory("ERC20VestingWallet");
-    vestingWallet = (await VestingWalletFactory.deploy(bob.address, start, duration)) as ERC20VestingWallet;
+    const deployer = VestingWalletFactory.deploy(legendToken.address, bob.address, start, duration);
+    vestingWallet = (await deployer) as ERC20VestingWallet;
     await vestingWallet.deployed();
   });
 
   /**
-   * Check cannot create vesting contract for zero address
+   * Check cannot create vesting contract for non-contract ERC20 address
+   */
+  it("should revert if token address isn't contract", async function () {
+    // TODO: not awaiting here to work around
+    // https://github.com/EthWorks/Waffle/issues/95
+    const VestingWalletFactory = await ethers.getContractFactory("ERC20VestingWallet");
+    expect(VestingWalletFactory.deploy(owner.address, bob.address, start, duration))
+      .to.be.revertedWith("ERC20VestingWallet: ERC20 address is not contract");
+  });
+
+  /**
+   * Check cannot create vesting contract for beneficiary zero address
    */
   it("should revert if beneficiary is zero address", async function () {
     const VestingWalletFactory = await ethers.getContractFactory("ERC20VestingWallet");
-    expect(VestingWalletFactory.deploy(ZERO_ADDRESS, start, duration))        // TODO: not awaiting here to work around
-      .to.be.revertedWith("ERC20VestingWallet: beneficiary is zero address"); // https://github.com/EthWorks/Waffle/issues/95
+    // TODO: not awaiting here to work around
+    // https://github.com/EthWorks/Waffle/issues/95
+    expect(VestingWalletFactory.deploy(legendToken.address, ZERO_ADDRESS, start, duration))
+      .to.be.revertedWith("ERC20VestingWallet: beneficiary is zero address");
   });
 
   /**
@@ -60,17 +79,12 @@ describe("ERC20VestingWallet", function () {
    * Check vesting schedule works as expected
    */
   describe("Vesting Schedule", function () {
-    let legendToken: LegendToken;
     let legendTotalSupply: BigNumber;
 
     /**
-     * Owner deploys LEGEND token and transfer supply to Bob's vesting wallet before each test
+     * Owner transfers LEGEND supply to Bob's vesting wallet before each test
      */
     beforeEach(async function () {
-      const LegendTokenFactory = await ethers.getContractFactory("LegendToken");
-      legendToken = (await LegendTokenFactory.deploy()) as LegendToken;
-      await legendToken.deployed();
-
       legendTotalSupply = await legendToken.totalSupply();
       await legendToken.transfer(vestingWallet.address, legendTotalSupply);
     });
@@ -82,11 +96,11 @@ describe("ERC20VestingWallet", function () {
      */
     async function checkVesting(claimTimestamp: number, expectedAmount: BigNumberish) {
       expectedAmount = BigNumber.from(expectedAmount);
-      const previouslyReleased = await vestingWallet.released(legendToken.address);
+      const previouslyReleased = await vestingWallet.released();
       const expectedReleased = expectedAmount.sub(previouslyReleased);
 
       await travelToFuture(claimTimestamp);
-      expect(await vestingWallet.connect(bob).release(legendToken.address))
+      expect(await vestingWallet.connect(bob).release())
         .to.emit(vestingWallet, "ERC20Released")
         .withArgs(legendToken.address, expectedReleased);
 
@@ -156,7 +170,7 @@ describe("ERC20VestingWallet", function () {
     it("non-beneficiary shouldn't release any tokens", async function () {
       // Owner tries to release tokens after the schedule ends
       await travelToFuture(end + 1);
-      await vestingWallet.release(legendToken.address);
+      await vestingWallet.release();
 
       // But the whole allocation is for Bob, so Owner receives nothing
       expect(await legendToken.balanceOf(owner.address)).to.equal(0);
