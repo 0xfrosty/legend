@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { BigNumber, BigNumberish } from "ethers";
@@ -33,30 +34,28 @@ describe("ERC20VestingWallet", function () {
     await legendToken.deployed();
 
     const VestingWalletFactory = await ethers.getContractFactory("ERC20VestingWallet");
-    const deployer = VestingWalletFactory.deploy(legendToken.address, bob.address, start, duration);
+    const deployer = VestingWalletFactory.deploy();
     vestingWallet = (await deployer) as ERC20VestingWallet;
     await vestingWallet.deployed();
   });
 
   /**
-   * Check cannot create vesting contract for non-contract ERC20 address
+   * Check cannot initialize vesting contract for non-contract ERC20 address
    */
   it("should revert if token address isn't contract", async function () {
     // TODO: not awaiting here to work around
     // https://github.com/EthWorks/Waffle/issues/95
-    const VestingWalletFactory = await ethers.getContractFactory("ERC20VestingWallet");
-    expect(VestingWalletFactory.deploy(owner.address, bob.address, start, duration))
+    expect(vestingWallet.initialize(owner.address, bob.address, start, duration))
       .to.be.revertedWith("ERC20 address is not a contract");
   });
 
   /**
-   * Check cannot create vesting contract for beneficiary zero address
+   * Check cannot initialize vesting contract for beneficiary zero address
    */
   it("should revert if beneficiary is zero address", async function () {
-    const VestingWalletFactory = await ethers.getContractFactory("ERC20VestingWallet");
     // TODO: not awaiting here to work around
     // https://github.com/EthWorks/Waffle/issues/95
-    expect(VestingWalletFactory.deploy(legendToken.address, ZERO_ADDRESS, start, duration))
+    expect(vestingWallet.initialize(legendToken.address, ZERO_ADDRESS, start, duration))
       .to.be.revertedWith("Beneficiary is zero address");
   });
 
@@ -64,14 +63,17 @@ describe("ERC20VestingWallet", function () {
    * Check contract tracks the proper values (beneficiary, start, duration)
    */
   it("should have the right beneficiary", async function () {
+    await vestingWallet.initialize(legendToken.address, bob.address, start, duration);
     expect(await vestingWallet.beneficiary()).to.equal(bob.address);
   });
 
   it("should start at the right timestamp", async function () {
+    await vestingWallet.initialize(legendToken.address, bob.address, start, duration);
     expect(await vestingWallet.start()).to.equal(start);
   });
 
   it(`should last for ${duration} seconds`, async function () {
+    await vestingWallet.initialize(legendToken.address, bob.address, start, duration);
     expect(await vestingWallet.duration()).to.equal(duration);
   });
 
@@ -85,6 +87,8 @@ describe("ERC20VestingWallet", function () {
      * Owner transfers LEGEND supply to Bob's vesting wallet before each test
      */
     beforeEach(async function () {
+      await vestingWallet.initialize(legendToken.address, bob.address, start, duration);
+
       legendTotalSupply = await legendToken.totalSupply();
       await legendToken.transfer(vestingWallet.address, legendTotalSupply);
     });

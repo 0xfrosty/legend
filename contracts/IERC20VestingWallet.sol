@@ -1,10 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
-import "@openzeppelin/contracts/utils/Context.sol";
-
 /**
  * @title IERC20VestingWallet
  * @dev Interface for vesting contracts of an ERC20 token for a given beneficiary. Custody of tokens can be given to
@@ -14,6 +10,13 @@ import "@openzeppelin/contracts/utils/Context.sol";
 interface IERC20VestingWallet {
 
     event ERC20Released(address token, uint256 amount);
+
+    function initialize(
+        address tokenAddress,
+        address beneficiaryAddress,
+        uint64 startTimestamp,
+        uint64 durationSeconds
+    ) external;
 
     /**
      * @dev Getter for the ERC20 token address.
