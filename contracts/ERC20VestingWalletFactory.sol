@@ -5,39 +5,24 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "./IERC20VestingWallet.sol";
+import "./IVestingSchedule.sol";
 import "./ERC20VestingWallet.sol";
 
 contract ERC20VestingWalletFactory is Ownable {
     using Address for address;
-    
-    enum Tranche { Seed, Strategic, Private, Public, Team, Marketing, Liquidity, Ecosystem, Rewards, Reserve }
-
-    error InvalidTranche();
-
-    uint64 private constant DURATION_ZERO = 0; // no vesting
-    uint64 private constant DURATION_04_MO = 10368000; // 4 * 30 * 24 * 3600 seconds
-    uint64 private constant DURATION_08_MO = 20736000; // 8 * 30 * 24 * 3600 seconds
-    uint64 private constant DURATION_10_MO = 25920000; // 10 * 30 * 24 * 3600 seconds
-    uint64 private constant DURATION_12_MO = 31104000; // 12 * 30 * 24 * 3600 seconds
-    uint64 private constant DURATION_24_MO = 62208000; // 24 * 30 * 24 * 3600 seconds
-    uint64 private constant DURATION_36_MO = 93312000; // 36 * 30 * 24 * 3600 seconds
 
     uint64 private immutable _start;
     address private immutable _token;
+    address private immutable _schedule;
     address private _walletImplementation;
-    mapping(address => mapping(Tranche => address)) private _wallets;
+    mapping(address => mapping(uint8 => address)) private _wallets;
 
-    modifier validTranche(Tranche tranche) {
-        if (tranche > type(Tranche).max || tranche <  type(Tranche).min) {
-            revert InvalidTranche();
-        }
-        _;
-    }
-
-    constructor(address tokenAddress, uint64 startTimestamp) {
+    constructor(address tokenAddress, address scheduleAddress, uint64 startTimestamp) {
         require(tokenAddress.isContract(), "ERC20 address is not a contract");
+        require(scheduleAddress.isContract(), "Schedule address is not a contract");
         _start = startTimestamp;
         _token = tokenAddress;
+        _schedule = scheduleAddress;
     }
 
     function getToken() public view virtual returns (address) {
@@ -48,24 +33,16 @@ contract ERC20VestingWalletFactory is Ownable {
         return _start;
     }
 
-    function getDuration(Tranche tranche) public pure validTranche(tranche) virtual returns (uint256) {
-        return _getDurationByTranche(tranche);
+    function getDuration(uint8 scheduleId) public view virtual returns (uint64) {
+        return IVestingSchedule(_schedule).getDuration(scheduleId);
     }
 
-    function getWallet(
-        address beneficiary,
-        Tranche tranche
-    )
-        public
-        view
-        validTranche(tranche)
-        virtual
-        returns (address)
-    {
-        return _wallets[beneficiary][tranche];
+    function getWallet(address beneficiary, uint8 scheduleId) public view virtual returns (address) {
+        return _wallets[beneficiary][scheduleId];
     }
 
-    function createWallet(address beneficiary, Tranche tranche) external onlyOwner validTranche(tranche) virtual {
+    function createWallet(address beneficiary, uint8 scheduleId) external onlyOwner virtual {
+        // TODO: revert if wallet already exists for bene/schedule
         address wallet;
         if (_walletImplementation == address(0)) {
             wallet = _walletImplementation = address(new ERC20VestingWallet());
@@ -73,44 +50,7 @@ contract ERC20VestingWalletFactory is Ownable {
             wallet = Clones.clone(_walletImplementation);
         }
 
-        _wallets[beneficiary][tranche] = wallet;
-        IERC20VestingWallet(wallet).initialize(_token, beneficiary, _start, _getDurationByTranche(tranche));
-    }
-
-    function _getDurationByTranche(Tranche tranche) internal pure returns (uint64) {
-        if (tranche == Tranche.Seed) {
-            return DURATION_12_MO;
-        
-        } else if (tranche == Tranche.Strategic) {
-            return DURATION_10_MO;
-        
-        } else if (tranche == Tranche.Private) {
-            return DURATION_08_MO;
-        
-        } else if (tranche == Tranche.Public) {
-            return DURATION_04_MO;
-        
-        } else if (tranche == Tranche.Team) {
-            return DURATION_24_MO;
-        
-        } else if (tranche == Tranche.Marketing) {
-            return DURATION_36_MO;
-        
-        } else if (tranche == Tranche.Liquidity) {
-            return DURATION_ZERO;
-        
-        } else if (tranche == Tranche.Ecosystem) {
-            return DURATION_36_MO;
-        
-        } else if (tranche == Tranche.Rewards) {
-            return DURATION_24_MO;
-        
-        } else if (tranche == Tranche.Reserve) {
-            return DURATION_24_MO;
-        
-        } else {
-            revert InvalidTranche();
-        
-        }
+        _wallets[beneficiary][scheduleId] = wallet;
+        IERC20VestingWallet(wallet).initialize(_token, beneficiary, _start, getDuration(scheduleId));
     }
 }
