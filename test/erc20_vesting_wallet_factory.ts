@@ -142,5 +142,13 @@ describe("ERC20VestingWalletFactory", function () {
       const wallet = await factory.getWallet(beneficiary, schedule);
       expect(wallet).to.not.equal(ZERO_ADDRESS);
     });
+
+    it("shouldn't create a wallet twice for same beneficiary and schedule", async function () {
+      const beneficiary = bob.address;
+      const schedule = schedules.PUBLIC;
+      await factory.createWallet(beneficiary, schedule);
+      expect(factory.createWallet(beneficiary, schedule))
+        .to.be.revertedWith(`ExistingWallet("${beneficiary}", ${schedule})`);
+    });
   });
 });

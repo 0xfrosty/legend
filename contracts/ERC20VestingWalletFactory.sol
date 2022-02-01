@@ -11,6 +11,8 @@ import "./ERC20VestingWallet.sol";
 contract ERC20VestingWalletFactory is Ownable {
     using Address for address;
 
+    error ExistingWallet(address beneficiary, uint8 scheduleId);
+
     uint64 private immutable _start;
     address private immutable _token;
     address private immutable _schedule;
@@ -42,7 +44,10 @@ contract ERC20VestingWalletFactory is Ownable {
     }
 
     function createWallet(address beneficiary, uint8 scheduleId) external onlyOwner virtual {
-        // TODO: revert if wallet already exists for bene/schedule
+        if (_wallets[beneficiary][scheduleId] != address(0)) {
+            revert ExistingWallet(beneficiary, scheduleId);
+        }
+
         address wallet;
         if (_walletImplementation == address(0)) {
             wallet = _walletImplementation = address(new ERC20VestingWallet());
