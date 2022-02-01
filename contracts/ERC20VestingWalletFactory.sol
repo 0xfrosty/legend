@@ -13,6 +13,8 @@ contract ERC20VestingWalletFactory is Ownable {
 
     error ExistingWallet(address beneficiary, uint8 scheduleId);
 
+    event WalletCreated(address indexed beneficiary, uint8 indexed scheduleId);
+
     uint64 private immutable _start;
     address private immutable _token;
     address private immutable _schedule;
@@ -56,6 +58,7 @@ contract ERC20VestingWalletFactory is Ownable {
         }
 
         _wallets[beneficiary][scheduleId] = wallet;
+        emit WalletCreated(beneficiary, scheduleId);
         IERC20VestingWallet(wallet).initialize(_token, beneficiary, _start, getDuration(scheduleId));
     }
 }

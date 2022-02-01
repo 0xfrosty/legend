@@ -108,7 +108,9 @@ describe("ERC20VestingWalletFactory", function () {
       const wallets = new Set();
 
       scheduleIds.forEach(async function (schedule, _) {
-        await factory.createWallet(beneficiary, schedule);
+        expect(await factory.createWallet(beneficiary, schedule))
+          .to.emit(factory, "WalletCreated")
+          .withArgs(beneficiary, schedule);
 
         const wallet = await factory.getWallet(beneficiary, schedule);
         expect(wallet).to.not.equal(ZERO_ADDRESS);
@@ -124,7 +126,9 @@ describe("ERC20VestingWalletFactory", function () {
       const wallets = new Set();
 
       beneficiaries.forEach(async function (beneficiary, _) {
-        await factory.createWallet(beneficiary, schedule);
+        expect(await factory.createWallet(beneficiary, schedule))
+          .to.emit(factory, "WalletCreated")
+          .withArgs(beneficiary, schedule);
 
         const wallet = await factory.getWallet(beneficiary, schedule);
         expect(wallet).to.not.equal(ZERO_ADDRESS);
@@ -137,7 +141,9 @@ describe("ERC20VestingWalletFactory", function () {
     it("owner should create a wallet for theirselves", async function () {
       const beneficiary = owner.address;
       const schedule = schedules.PUBLIC;
-      await factory.createWallet(beneficiary, schedule);
+      expect(await factory.createWallet(beneficiary, schedule))
+        .to.emit(factory, "WalletCreated")
+        .withArgs(beneficiary, schedule);
 
       const wallet = await factory.getWallet(beneficiary, schedule);
       expect(wallet).to.not.equal(ZERO_ADDRESS);
