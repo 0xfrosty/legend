@@ -22,9 +22,9 @@ contract ERC20VestingWalletFactory is Ownable {
     uint64 private constant DURATION_24_MO = 62208000; // 24 * 30 * 24 * 3600 seconds
     uint64 private constant DURATION_36_MO = 93312000; // 36 * 30 * 24 * 3600 seconds
 
+    uint64 private immutable _start;
     address private immutable _token;
-    address private immutable _walletImplementation;
-    uint64 private _start;
+    address private _walletImplementation;
     mapping(address => mapping(Tranche => address)) private _wallets;
 
     modifier validTranche(Tranche tranche) {
@@ -38,7 +38,10 @@ contract ERC20VestingWalletFactory is Ownable {
         require(tokenAddress.isContract(), "ERC20 address is not a contract");
         _start = startTimestamp;
         _token = tokenAddress;
-        _walletImplementation = address(new ERC20VestingWallet());
+    }
+
+    function getToken() public view virtual returns (address) {
+        return _token;
     }
 
     function getStart() public view virtual returns (uint256) {
@@ -62,19 +65,16 @@ contract ERC20VestingWalletFactory is Ownable {
         return _wallets[beneficiary][tranche];
     }
 
-    function createWallet(
-        address beneficiary,
-        Tranche tranche
-    )
-        external
-        onlyOwner
-        validTranche(tranche)
-        virtual
-        returns (address)
-    {
-        address wallet = Clones.clone(_walletImplementation);
+    function createWallet(address beneficiary, Tranche tranche) external onlyOwner validTranche(tranche) virtual {
+        address wallet;
+        if (_walletImplementation == address(0)) {
+            wallet = _walletImplementation = address(new ERC20VestingWallet());
+        } else {
+            wallet = Clones.clone(_walletImplementation);
+        }
+
+        _wallets[beneficiary][tranche] = wallet;
         IERC20VestingWallet(wallet).initialize(_token, beneficiary, _start, _getDurationByTranche(tranche));
-        return wallet;
     }
 
     function _getDurationByTranche(Tranche tranche) internal pure returns (uint64) {
