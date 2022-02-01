@@ -2,7 +2,6 @@
 // Adapted from OpenZeppelin Contracts v4.4.1 (finance/VestingWallet.sol)
 pragma solidity ^0.8.9;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
@@ -18,7 +17,7 @@ import "./IERC20VestingWallet.sol";
  * Consequently, if the vesting has already started, any amount of tokens sent to this contract will (at least partly)
  * be immediately releasable.
  */
-contract ERC20VestingWallet is IERC20VestingWallet, Initializable, Ownable {
+contract ERC20VestingWallet is IERC20VestingWallet, Initializable {
     using Address for address;
 
     address private _token;
@@ -39,7 +38,6 @@ contract ERC20VestingWallet is IERC20VestingWallet, Initializable, Ownable {
         external
         virtual
         initializer
-        onlyOwner
     {
         require(tokenAddress.isContract(), "ERC20 address is not a contract");
         require(beneficiaryAddress != address(0), "Beneficiary is zero address");
@@ -110,10 +108,13 @@ contract ERC20VestingWallet is IERC20VestingWallet, Initializable, Ownable {
     function _vestingSchedule(uint256 totalAllocation, uint64 timestamp) internal view virtual returns (uint256) {
         if (timestamp < start()) {
             return 0;
+
         } else if (timestamp > start() + duration()) {
             return totalAllocation;
+
         } else {
             return (totalAllocation * (timestamp - start())) / duration();
+
         }
     }
 }
