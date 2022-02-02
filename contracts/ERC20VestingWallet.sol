@@ -24,6 +24,9 @@ import "./IERC20VestingWallet.sol";
 contract ERC20VestingWallet is IERC20VestingWallet, Initializable {
     using Address for address;
 
+    /**
+     * State vars
+     */
     address private _token;
     address private _beneficiary;
     uint256 private _released;

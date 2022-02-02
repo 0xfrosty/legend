@@ -156,5 +156,23 @@ describe("ERC20VestingWalletFactory", function () {
       expect(factory.createWallet(beneficiary, schedule))
         .to.be.revertedWith(`ExistingWallet("${beneficiary}", ${schedule})`);
     });
+
+    it("anyone should get the wallet address of anyone", async function () {
+      const requester = bob;
+      const beneficiary = alice.address;
+      const schedule = schedules.PUBLIC;
+      await factory.createWallet(beneficiary, schedule);
+
+      const wallet = await factory.connect(requester).getWallet(beneficiary, schedule);
+      expect(wallet).to.not.equal(ZERO_ADDRESS);
+    });
+
+    it("should get zero as wallet address if it wasn't created", async function () {
+      const beneficiary = alice.address;
+      const schedule = schedules.PUBLIC;
+
+      const wallet = await factory.getWallet(beneficiary, schedule);
+      expect(wallet).to.equal(ZERO_ADDRESS);
+    });
   });
 });
