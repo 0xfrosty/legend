@@ -64,17 +64,17 @@ describe("ERC20VestingWallet", function () {
    */
   it("should have the right beneficiary", async function () {
     await vestingWallet.initialize(legendToken.address, bob.address, start, duration);
-    expect(await vestingWallet.beneficiary()).to.equal(bob.address);
+    expect(await vestingWallet.getBeneficiary()).to.equal(bob.address);
   });
 
   it("should start at the right timestamp", async function () {
     await vestingWallet.initialize(legendToken.address, bob.address, start, duration);
-    expect(await vestingWallet.start()).to.equal(start);
+    expect(await vestingWallet.getStart()).to.equal(start);
   });
 
   it(`should last for ${duration} seconds`, async function () {
     await vestingWallet.initialize(legendToken.address, bob.address, start, duration);
-    expect(await vestingWallet.duration()).to.equal(duration);
+    expect(await vestingWallet.getDuration()).to.equal(duration);
   });
 
   /**
@@ -106,7 +106,7 @@ describe("ERC20VestingWallet", function () {
       await travelToFuture(claimTimestamp);
       expect(await vestingWallet.connect(bob).release())
         .to.emit(vestingWallet, "ERC20Released")
-        .withArgs(legendToken.address, expectedReleased);
+        .withArgs(bob.address, legendToken.address, expectedReleased);
 
       expect(await legendToken.balanceOf(bob.address)).to.equal(expectedAmount);
     }
