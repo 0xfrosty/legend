@@ -1,8 +1,6 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { BigNumber, BigNumberish } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { travelToFuture } from "./helpers/time";
 import { ZERO_ADDRESS } from "./helpers/constants";
 import { ERC20VestingWalletFactory } from "../typechain/ERC20VestingWalletFactory";
 import { LegendToken } from "../typechain/LegendToken";
@@ -18,6 +16,18 @@ describe("ERC20VestingWalletFactory", function () {
   let owner: SignerWithAddress, bob: SignerWithAddress, alice: SignerWithAddress;
   let now: number, start: number;
   const offset = 1000;
+  const schedules: Record<string, number> = {
+    SEED: 0,
+    STRATEGIC: 1,
+    PRIVATE: 2,
+    PUBLIC: 3,
+    TEAM: 4,
+    MARKETING: 5,
+    LIQUIDITY: 6,
+    ECOSYSTEM: 7,
+    REWARDS: 8,
+    RESERVE: 9,
+  };
 
   /**
    * Deploy contracts before each test
@@ -79,19 +89,6 @@ describe("ERC20VestingWalletFactory", function () {
    * Check factory can manage vesting wallets
    */
   describe("Wallet Management", function () {
-    const schedules: Record<string, number> = {
-      SEED: 0,
-      STRATEGIC: 1,
-      PRIVATE: 2,
-      PUBLIC: 3,
-      TEAM: 4,
-      MARKETING: 5,
-      LIQUIDITY: 6,
-      ECOSYSTEM: 7,
-      REWARDS: 8,
-      RESERVE: 9,
-    };
-
     it("non-owner shouldn't create a wallet", async function () {
       const beneficiary = alice.address;
       const schedule = schedules.PUBLIC;
@@ -173,6 +170,89 @@ describe("ERC20VestingWalletFactory", function () {
 
       const wallet = await factory.getWallet(beneficiary, schedule);
       expect(wallet).to.equal(ZERO_ADDRESS);
+    });
+  });
+
+  /**
+   * Check factory can manage vesting wallets
+   */
+  describe("Vesting Schedule", function () {
+    async function getVestingDuration(beneficiary: string, schedule: number) {
+      await factory.createWallet(beneficiary, schedule);
+      const walletAddress = await factory.getWallet(beneficiary, schedule);
+
+      const VestingWalletFactory = await ethers.getContractFactory("ERC20VestingWallet");
+      const wallet = VestingWalletFactory.attach(walletAddress);
+      return await wallet.getDuration();
+    }
+
+    it("seed beneficiary should vest for 12 months", async function () {
+      const expectedDuration = 12 * 30 * 24 * 3600;
+      expect(await getVestingDuration(bob.address, schedules.SEED))
+        .to.equal(expectedDuration);
+    });
+
+    it("strategic beneficiary should vest for 10 months", async function () {
+      const expectedDuration = 10 * 30 * 24 * 3600;
+      expect(await getVestingDuration(bob.address, schedules.STRATEGIC))
+        .to.equal(expectedDuration);
+    });
+
+    it("private beneficiary should vest for 8 months", async function () {
+      const expectedDuration = 8 * 30 * 24 * 3600;
+      expect(await getVestingDuration(bob.address, schedules.PRIVATE))
+        .to.equal(expectedDuration);
+    });
+
+    it("public beneficiary should vest for 4 months", async function () {
+      const expectedDuration = 4 * 30 * 24 * 3600;
+      expect(await getVestingDuration(bob.address, schedules.PUBLIC))
+        .to.equal(expectedDuration);
+    });
+
+    it("team beneficiary should vest for 2 years", async function () {
+      const expectedDuration = 24 * 30 * 24 * 3600;
+      expect(await getVestingDuration(bob.address, schedules.TEAM))
+        .to.equal(expectedDuration);
+    });
+
+    it("marketing beneficiary should vest for 3 years", async function () {
+      const expectedDuration = 36 * 30 * 24 * 3600;
+      expect(await getVestingDuration(bob.address, schedules.MARKETING))
+        .to.equal(expectedDuration);
+    });
+
+    it("liquidity beneficiary should not vest", async function () {
+      const expectedDuration = 0;
+      expect(await getVestingDuration(bob.address, schedules.LIQUIDITY))
+        .to.equal(expectedDuration);
+    });
+
+    it("ecosystem beneficiary should vest for 3 years", async function () {
+      const expectedDuration = 36 * 30 * 24 * 3600;
+      expect(await getVestingDuration(bob.address, schedules.ECOSYSTEM))
+        .to.equal(expectedDuration);
+    });
+
+    it("rewards beneficiary should vest for 2 years", async function () {
+      const expectedDuration = 24 * 30 * 24 * 3600;
+      expect(await getVestingDuration(bob.address, schedules.REWARDS))
+        .to.equal(expectedDuration);
+    });
+
+    it("reserve beneficiary should vest for 2 years", async function () {
+      const expectedDuration = 24 * 30 * 24 * 3600;
+      expect(await getVestingDuration(bob.address, schedules.RESERVE))
+        .to.equal(expectedDuration);
+    });
+
+    it("unknown schedule should revert", async function () {
+      const invalidSchedule = 255;
+      const expectedError = `InvalidSchedule(${invalidSchedule}, ${schedules.SEED}, ${schedules.RESERVE})`;
+      // TODO: not awaiting here to work around
+      // https://github.com/EthWorks/Waffle/issues/95
+      expect(getVestingDuration(bob.address, invalidSchedule))
+        .to.be.revertedWith(expectedError);
     });
   });
 });
