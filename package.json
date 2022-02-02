@@ -10,7 +10,7 @@
     "deploy:local": "npx hardhat run --network localhost scripts/deploy.ts",
     "deploy:ropsten": "npx hardhat run --network ropsten scripts/deploy.ts",
     "local": "npx --node-options=--openssl-legacy-provider hardhat node",
-    "test": "npx --node-options=--openssl-legacy-provider hardhat test"
+    "test": "REPORT_GAS=true npx --node-options=--openssl-legacy-provider hardhat test"
   },
   "keywords": [],
   "author": "0xfrosty@protonmail.com",
