@@ -55,6 +55,34 @@ contract ERC20VestingWallet is IERC20VestingWallet, Initializable {
     }
 
     /**
+     * @dev Release the tokens that have already vested
+     *
+     * Emit an {ERC20Released} event.
+     */
+    function release() public {
+        uint256 releasable = vestedAmount(uint64(block.timestamp)) - released();
+        _released += releasable;
+        emit ERC20Released(getBeneficiary(), getToken(), releasable);
+        SafeERC20.safeTransfer(IERC20(getToken()), getBeneficiary(), releasable);
+    }
+
+    /**
+     * @dev Amount of token already released
+     */
+    function released() public view returns (uint256) {
+        return _released;
+    }
+
+    /**
+     * @dev Calculates the amount of tokens that beneficiary has already vested at {timestamp}
+     * @param timestamp UNIX timestamp at which the vested amount is computed
+     * @return Vested amount at {timestamp}
+     */
+    function vestedAmount(uint64 timestamp) public view virtual returns (uint256) {
+        return _linearVesting(IERC20(getToken()).balanceOf(address(this)) + released(), timestamp);
+    }
+
+    /**
      * @dev Getter for the ERC20 token address
      */
     function getToken() public view returns (address) {
@@ -80,34 +108,6 @@ contract ERC20VestingWallet is IERC20VestingWallet, Initializable {
      */
     function getDuration() public view returns (uint256) {
         return _duration;
-    }
-
-    /**
-     * @dev Amount of token already released
-     */
-    function released() public view returns (uint256) {
-        return _released;
-    }
-
-    /**
-     * @dev Release the tokens that have already vested
-     *
-     * Emit an {ERC20Released} event.
-     */
-    function release() public {
-        uint256 releasable = vestedAmount(uint64(block.timestamp)) - released();
-        _released += releasable;
-        emit ERC20Released(getBeneficiary(), getToken(), releasable);
-        SafeERC20.safeTransfer(IERC20(getToken()), getBeneficiary(), releasable);
-    }
-
-    /**
-     * @dev Calculates the amount of tokens that beneficiary has already vested at {timestamp}
-     * @param timestamp UNIX timestamp at which the vested amount is computed
-     * @return Vested amount at {timestamp}
-     */
-    function vestedAmount(uint64 timestamp) public view virtual returns (uint256) {
-        return _linearVesting(IERC20(getToken()).balanceOf(address(this)) + released(), timestamp);
     }
 
     /**
