@@ -69,8 +69,10 @@ describe("LegendToken", function () {
     });
 
     it("shouldn't allow non-owner to pause transfers", async function () {
-      expect(legendToken.connect(bob).pause())                   // not awaiting here to work around
-        .to.be.revertedWith("Ownable: caller is not the owner"); // https://github.com/EthWorks/Waffle/issues/95
+      // not awaiting here to work around
+      // https://github.com/EthWorks/Waffle/issues/95
+      expect(legendToken.connect(bob).pause())
+        .to.be.revertedWith("Ownable: caller is not the owner");
 
       expect(await legendToken.paused()).to.false;
     });
@@ -94,8 +96,10 @@ describe("LegendToken", function () {
       const amount = ethers.utils.parseUnits("100", decimals);
 
       await legendToken.pause();
-      expect(legendToken.transfer(bob.address, amount)) // not awaiting here to work around
-        .to.be.revertedWith("Pausable: paused");        // https://github.com/EthWorks/Waffle/issues/95
+      // not awaiting here to work around
+      // https://github.com/EthWorks/Waffle/issues/95
+      expect(legendToken.transfer(bob.address, amount))
+        .to.be.revertedWith("Pausable: paused");
     });
   });
 });
