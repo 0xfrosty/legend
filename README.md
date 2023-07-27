@@ -36,6 +36,18 @@ npx solhint 'contracts/**/*.sol'
 npx solhint 'contracts/**/*.sol' --fix
 ```
 
+## Contract addresses
+
+| Mainnet  | Address                                    |
+|----------|--------------------------------------------|
+| Ethereum | 0xB8f36397e244ced60d115Add360FF0bFAA75E60f |
+| Polygon  | 0xcC60c7c0Cf827355BB9FdC6d1F26f2fEE8aBc26d |
+
+| Testnet  | Address                                    |
+|----------|--------------------------------------------|
+| Goerli   | 0x4331555CF00DF056dDCE67149F2236B2C417bC02 |
+| Mumbai   | 0xA7d38579e0Ff4E3416D03501d19Cebf8633daBB1 |
+
 # Etherscan verification
 
 To try out Etherscan verification, you first need to deploy a contract to an Ethereum network that's supported by Etherscan, such as Ropsten.
