@@ -4,7 +4,7 @@ This project contains the smart contracts for the LEGEND ERC20 token, written in
 [OpenZeppelin Contracts](https://openzeppelin.com/contracts/) library. The project uses [Hardhat](https://hardhat.org/)
 with Typescript for scripts and tests.
 
-The following `package.json` scripts are available:
+Use **Node 20**. The following `package.json` scripts are available:
 
 ```shell
 yarn clean
@@ -47,6 +47,8 @@ npx solhint 'contracts/**/*.sol' --fix
 |----------|--------------------------------------------|
 | Goerli   | 0x4331555CF00DF056dDCE67149F2236B2C417bC02 |
 | Mumbai   | 0xA7d38579e0Ff4E3416D03501d19Cebf8633daBB1 |
+| Sepolia  | 0x4331555CF00DF056dDCE67149F2236B2C417bC02 |
+| Amoy     | TBD |
 
 # Etherscan verification
 
