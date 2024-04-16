@@ -54,6 +54,15 @@ const config: HardhatUserConfig = {
           ? [process.env.TESTNET_PRIVATE_KEY]
           : [],
     },
+    cronosTestnet: {
+      url: "https://evm-t3.cronos.org/",
+      chainId: 338,
+      gasPrice: 10100000000000,
+      accounts:
+        process.env.TESTNET_PRIVATE_KEY !== undefined
+          ? [process.env.TESTNET_PRIVATE_KEY]
+          : [],
+    },
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,
@@ -63,7 +72,23 @@ const config: HardhatUserConfig = {
     apiKey: {
       ethereum: String(process.env.ETHERSCAN_API_KEY),
       sepolia: String(process.env.ETHERSCAN_API_KEY),
+      cronosTestnet: String(process.env.CRONOS_TESTNET_API_KEY),
     },
+    customChains: [
+      {
+        network: "cronosTestnet",
+        chainId: 338,
+        urls: {
+          apiURL:
+            "https://explorer-api.cronos.org/testnet/api/v1/hardhat/contract?apikey=" +
+            String(process.env.CRONOS_TESTNET_API_KEY),
+          browserURL: "https://explorer.cronos.org/testnet",
+        },
+      },
+    ],
+  },
+  sourcify: {
+    enabled: false,
   },
 };
 

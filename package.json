@@ -8,6 +8,7 @@
     "compile": "npx hardhat compile",
     "coverage": "npx --node-options=--openssl-legacy-provider hardhat coverage",
     "deploy:local": "npx hardhat run --network localhost scripts/deploy.ts",
+    "deploy:cronos-testnet": "npx hardhat run --network cronosTestnet scripts/deploy.ts",
     "deploy:goerli": "npx hardhat run --network goerli scripts/deploy.ts",
     "deploy:sepolia": "npx hardhat run --network sepolia scripts/deploy.ts",
     "deploy:ethereum": "npx hardhat run --network ethereum scripts/deploy.ts",

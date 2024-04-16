@@ -38,17 +38,28 @@ npx solhint 'contracts/**/*.sol' --fix
 
 ## Contract addresses
 
-| Mainnet  | Address                                    |
-|----------|--------------------------------------------|
-| Ethereum | 0xB8f36397e244ced60d115Add360FF0bFAA75E60f |
-| Polygon  | 0xcC60c7c0Cf827355BB9FdC6d1F26f2fEE8aBc26d |
+LEGEND's home chain is Ethereum. Smart contract is mapped onto other networks and funds are bridged in order to provide
+liquidity.
 
-| Testnet  | Address                                    |
-|----------|--------------------------------------------|
-| Goerli   | 0x4331555CF00DF056dDCE67149F2236B2C417bC02 |
-| Mumbai   | 0xA7d38579e0Ff4E3416D03501d19Cebf8633daBB1 |
-| Sepolia  | 0x4331555CF00DF056dDCE67149F2236B2C417bC02 |
-| Amoy     | TBD |
+### Mainnet
+
+| Ethereum                                   | Polygon                                    |
+|--------------------------------------------|--------------------------------------------|
+| 0xB8f36397e244ced60d115Add360FF0bFAA75E60f | 0xcC60c7c0Cf827355BB9FdC6d1F26f2fEE8aBc26d |
+
+### Testnet
+
+| Goerli                                     | Mumbai                                     |
+|--------------------------------------------|--------------------------------------------|
+| 0x4331555CF00DF056dDCE67149F2236B2C417bC02 | 0xA7d38579e0Ff4E3416D03501d19Cebf8633daBB1 |
+
+| Sepolia                                    | Amoy                                       |
+|--------------------------------------------|--------------------------------------------|
+| 0x4331555CF00DF056dDCE67149F2236B2C417bC02 | TBD                                        |
+
+| Cronos Testnet                             |
+|--------------------------------------------|
+| 0xF35908524C9273F9C24380D506504388B8789564 |
 
 # Etherscan verification
 
