@@ -1,7 +1,7 @@
 import * as dotenv from "dotenv";
 
 import { HardhatUserConfig, task } from "hardhat/config";
-import "@nomiclabs/hardhat-etherscan";
+import "@nomicfoundation/hardhat-verify";
 import "@nomiclabs/hardhat-waffle";
 import "@typechain/hardhat";
 import "hardhat-gas-reporter";
@@ -23,12 +23,45 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
 // Go to https://hardhat.org/config/ to learn more
 
 const config: HardhatUserConfig = {
-  solidity: "0.8.9",
+  solidity: {
+    version: "0.8.9",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200,
+      },
+    },
+  },
   networks: {
-    ropsten: {
-      url: process.env.ROPSTEN_URL || "",
+    ethereum: {
+      url: process.env.ETHEREUM_URL || "",
       accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+        process.env.MAINNET_PRIVATE_KEY !== undefined
+          ? [process.env.MAINNET_PRIVATE_KEY]
+          : [],
+    },
+    goerli: {
+      url: process.env.GOERLI_URL || "",
+      accounts:
+        process.env.TESTNET_PRIVATE_KEY !== undefined
+          ? [process.env.TESTNET_PRIVATE_KEY]
+          : [],
+    },
+    sepolia: {
+      url: process.env.SEPOLIA_URL || "",
+      accounts:
+        process.env.TESTNET_PRIVATE_KEY !== undefined
+          ? [process.env.TESTNET_PRIVATE_KEY]
+          : [],
+    },
+    cronosTestnet: {
+      url: "https://evm-t3.cronos.org/",
+      chainId: 338,
+      gasPrice: 10100000000000,
+      accounts:
+        process.env.TESTNET_PRIVATE_KEY !== undefined
+          ? [process.env.TESTNET_PRIVATE_KEY]
+          : [],
     },
   },
   gasReporter: {
@@ -36,7 +69,26 @@ const config: HardhatUserConfig = {
     currency: "USD",
   },
   etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY,
+    apiKey: {
+      ethereum: String(process.env.ETHERSCAN_API_KEY),
+      sepolia: String(process.env.ETHERSCAN_API_KEY),
+      cronosTestnet: String(process.env.CRONOS_TESTNET_API_KEY),
+    },
+    customChains: [
+      {
+        network: "cronosTestnet",
+        chainId: 338,
+        urls: {
+          apiURL:
+            "https://explorer-api.cronos.org/testnet/api/v1/hardhat/contract?apikey=" +
+            String(process.env.CRONOS_TESTNET_API_KEY),
+          browserURL: "https://explorer.cronos.org/testnet",
+        },
+      },
+    ],
+  },
+  sourcify: {
+    enabled: false,
   },
 };
 

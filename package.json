@@ -8,7 +8,10 @@
     "compile": "npx hardhat compile",
     "coverage": "npx --node-options=--openssl-legacy-provider hardhat coverage",
     "deploy:local": "npx hardhat run --network localhost scripts/deploy.ts",
-    "deploy:ropsten": "npx hardhat run --network ropsten scripts/deploy.ts",
+    "deploy:cronos-testnet": "npx hardhat run --network cronosTestnet scripts/deploy.ts",
+    "deploy:goerli": "npx hardhat run --network goerli scripts/deploy.ts",
+    "deploy:sepolia": "npx hardhat run --network sepolia scripts/deploy.ts",
+    "deploy:ethereum": "npx hardhat run --network ethereum scripts/deploy.ts",
     "local": "npx --node-options=--openssl-legacy-provider hardhat node",
     "test": "REPORT_GAS=true npx --node-options=--openssl-legacy-provider hardhat test"
   },
@@ -16,8 +19,8 @@
   "author": "0xfrosty@protonmail.com",
   "license": "MIT",
   "devDependencies": {
+    "@nomicfoundation/hardhat-verify": "^2.0.5",
     "@nomiclabs/hardhat-ethers": "^2.0.0",
-    "@nomiclabs/hardhat-etherscan": "^2.1.3",
     "@nomiclabs/hardhat-waffle": "^2.0.0",
     "@typechain/ethers-v5": "^7.0.1",
     "@typechain/hardhat": "^2.3.0",
