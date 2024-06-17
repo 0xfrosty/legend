@@ -45,7 +45,7 @@ liquidity.
 
 | Ethereum                                   | Polygon                                    |
 |--------------------------------------------|--------------------------------------------|
-| 0xB8f36397e244ced60d115Add360FF0bFAA75E60f | 0xcC60c7c0Cf827355BB9FdC6d1F26f2fEE8aBc26d |
+| 0x1B1FF83AE0751ffb7ce0224e9C330e859E95dD16 | 0x4BDeD3d44f716fE6139250dB8eb8366bAA8f3992 |
 
 ### Testnet
 
