@@ -70,6 +70,7 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: {
+      mainnet: String(process.env.ETHERSCAN_API_KEY),
       ethereum: String(process.env.ETHERSCAN_API_KEY),
       sepolia: String(process.env.ETHERSCAN_API_KEY),
       cronosTestnet: String(process.env.CRONOS_TESTNET_API_KEY),

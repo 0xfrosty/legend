@@ -68,6 +68,12 @@ describe("LegendToken", function () {
       expect(await legendToken.paused()).to.false;
     });
 
+    it("should allow owner to renounce ownership", async function () {
+      expect(await legendToken.renounceOwnership())
+        .to.emit(legendToken, "OwnershipTransferred")
+        .withArgs(owner.address);
+    });
+
     it("shouldn't allow non-owner to pause transfers", async function () {
       // not awaiting here to work around
       // https://github.com/EthWorks/Waffle/issues/95
@@ -78,6 +84,23 @@ describe("LegendToken", function () {
     });
 
     it("should allow holder to transfer tokens", async function () {
+      const amount = ethers.utils.parseUnits("100", decimals);
+      const ownerBalance = await legendToken.balanceOf(owner.address);
+      const bobBalance = await legendToken.balanceOf(bob.address);
+      const newOwnerBalance = ownerBalance.sub(amount);
+      const newBobBalance = bobBalance.add(amount);
+
+      expect(await legendToken.transfer(bob.address, amount))
+        .to.emit(legendToken, "Transfer")
+        .withArgs(owner.address, bob.address, amount);
+
+      expect(await legendToken.balanceOf(owner.address)).to.equal(newOwnerBalance);
+      expect(await legendToken.balanceOf(bob.address)).to.equal(newBobBalance);
+    });
+
+    it("should allow holder to transfer tokens after no owner", async function () {
+      await legendToken.renounceOwnership();
+
       const amount = ethers.utils.parseUnits("100", decimals);
       const ownerBalance = await legendToken.balanceOf(owner.address);
       const bobBalance = await legendToken.balanceOf(bob.address);
