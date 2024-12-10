@@ -47,6 +47,10 @@ liquidity.
 |--------------------------------------------|--------------------------------------------|
 | 0x1B1FF83AE0751ffb7ce0224e9C330e859E95dD16 | 0x4BDeD3d44f716fE6139250dB8eb8366bAA8f3992 |
 
+| Base                                       |
+|--------------------------------------------|
+| 0xc7837BE3d71E00fcbE76D77602BCf353Df859664 |
+
 ### Testnet
 
 | Goerli                                     | Mumbai                                     |
@@ -57,9 +61,9 @@ liquidity.
 |--------------------------------------------|--------------------------------------------|
 | 0x4331555CF00DF056dDCE67149F2236B2C417bC02 | 0x8b377fdAcb6D5Bd4d13707fB7b9a2D523A4Afdf4 |
 
-| Cronos Testnet                             |
-|--------------------------------------------|
-| 0xF35908524C9273F9C24380D506504388B8789564 |
+| Base Sepolia                               | Cronos Testnet                             |
+|--------------------------------------------|--------------------------------------------|
+| 0x3228A48B231EefFf6F926C1754C9c43601F61E52 | 0xF35908524C9273F9C24380D506504388B8789564 |
 
 # Etherscan verification
 
@@ -80,3 +84,95 @@ npx hardhat verify --network ropsten DEPLOYED_CONTRACT_ADDRESS "Hello, Hardhat!"
 # Performance optimizations
 
 For faster runs of your tests and scripts, consider skipping ts-node's type checking by setting the environment variable `TS_NODE_TRANSPILE_ONLY` to `1` in hardhat's environment. For more details see [the documentation](https://hardhat.org/guides/typescript.html#performance-optimizations).
+
+# Bridging
+
+## Base
+
+### Deploy L2 token
+
+[Tutorial](https://docs.optimism.io/builders/app-developers/tutorials/standard-bridge-standard-token)
+
+Dependencies:
+
+* cast (forge)
+* jq
+
+#### Testnet
+
+```bash
+export PRIVATE_KEY=
+export RPC_URL=https://sepolia.base.org
+export L1_ERC20_ADDRESS=0x4331555CF00DF056dDCE67149F2236B2C417bC02
+cast send 0x4200000000000000000000000000000000000012 "createOptimismMintableERC20(address,string,string)" $L1_ERC20_ADDRESS "Legend" "LEGEND" --private-key $PRIVATE_KEY --rpc-url $RPC_URL --json | jq -r '.logs[0].topics[2]' | cast parse-bytes32-address
+```
+
+#### Mainnet
+
+```bash
+export PRIVATE_KEY=
+export RPC_URL=https://mainnet.base.org
+export L1_ERC20_ADDRESS=0x1B1FF83AE0751ffb7ce0224e9C330e859E95dD16
+cast send 0xF10122D428B4bc8A9d050D06a2037259b4c4B83B "createOptimismMintableERC20(address,string,string)" $L1_ERC20_ADDRESS "Legend" "LEGEND" --private-key $PRIVATE_KEY --rpc-url $RPC_URL --json | jq -r '.logs[0].topics[2]' | cast parse-bytes32-address
+```
+
+### Bridge tokens from L1 to L2
+
+[Tutorial](https://docs.optimism.io/builders/app-developers/tutorials/cross-dom-bridge-erc20)
+
+#### Testnet
+
+```bash
+mkdir legend-base
+cd legend-base
+nvm use v20.18.0
+pnpm init
+pnpm add @eth-optimism/sdk
+pnpm add ethers@^5
+export PRIVATE_KEY=
+node
+```
+
+```js
+const optimism = require("@eth-optimism/sdk")
+const ethers = require("ethers")
+
+const privateKey = process.env.PRIVATE_KEY
+
+const l1Provider = new ethers.providers.StaticJsonRpcProvider("https://rpc.ankr.com/eth_sepolia")
+const l2Provider = new ethers.providers.StaticJsonRpcProvider("https://sepolia.base.org")
+const l1Wallet = new ethers.Wallet(privateKey, l1Provider)
+const l2Wallet = new ethers.Wallet(privateKey, l2Provider)
+
+const l1Token = "0x4331555CF00DF056dDCE67149F2236B2C417bC02"
+const l2Token = "0x3228A48B231EefFf6F926C1754C9c43601F61E52"
+const l1ChainId = 11155111 // Sepolia
+const l2ChainId = 84532    // Base Sepolia
+const oneToken = 1000000000000000000n
+const amount = 10000n * oneToken
+
+const messenger = new optimism.CrossChainMessenger({
+  l1ChainId,
+  l2ChainId,
+  l1SignerOrProvider: l1Wallet,
+  l2SignerOrProvider: l2Wallet,
+})
+
+tx = await messenger.approveERC20(l1Token, l2Token, amount)
+await tx.wait()
+
+tx = await messenger.depositERC20(l1Token, l2Token, amount)
+await tx.wait()
+
+await messenger.waitForMessageStatus(tx.hash, optimism.MessageStatus.RELAYED)
+
+const erc20ABI = [{ constant: true, inputs: [{ name: "_owner", type: "address" }], name: "balanceOf", outputs: [{ name: "balance", type: "uint256" }], type: "function" }, { inputs: [], name: "faucet", outputs: [], stateMutability: "nonpayable", type: "function" }]
+const l1ERC20 = new ethers.Contract(l1Token, erc20ABI, l1Wallet)
+const l2ERC20 = new ethers.Contract(l2Token, erc20ABI, l2Wallet)
+console.log((await l1ERC20.balanceOf(l1Wallet.address)).toString())
+console.log((await l2ERC20.balanceOf(l2Wallet.address)).toString())
+```
+
+### Superchain Token List
+
+[Open PR](https://github.com/ethereum-optimism/ethereum-optimism.github.io#readme)
